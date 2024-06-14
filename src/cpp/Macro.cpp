@@ -1,35 +1,32 @@
 #include "Macro.h"
 
-Macro::Macro() {
-}
-
 int Macro::getId() const
 {
-    return id;
+    return _id;
 }
 
-char *Macro::getName() const
+const char* Macro::getName() const
 {
-    return name;
+    return _name;
 }
 
-char *Macro::getSequence() const
+char* Macro::getSequence() const
 {
-    return sequence;
+    return _sequence;
 }
 
 void Macro::setId(int id)
 {
-    this->id = id;
+    _id = id;
 }
 
 void Macro::setName(char *name)
 {
-    this->name = name;
+    _name = name;
 }
 
 void Macro::setSequence(char *sequence)
 {
-    this->sequence = sequence;
+    _sequence = sequence;
 }
 

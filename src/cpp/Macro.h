@@ -1,20 +1,18 @@
-#ifndef __MACRO_H__
-#define __MACRO_H__
+#pragma once
 
 class Macro
 {
-private:
-    int id;
-    char *name;
-    char *sequence;
-public:
-    Macro();
-    int getId() const;
-    char *getName() const;
-    char *getSequence() const;
-    void setId(int id);
-    void setName(char *name);
-    void setSequence(char *sequence);
-};
+	private:
+		int _id{};
+		char* _name{};
+		char* _sequence{};
 
-#endif
+	public:
+		Macro() = default;
+		[[nodiscard]] int getId() const;
+		[[nodiscard]] const char* getName() const;
+		[[nodiscard]] char* getSequence() const;
+		void setId(int id);
+		void setName(char* name);
+		void setSequence(char* sequence);
+};

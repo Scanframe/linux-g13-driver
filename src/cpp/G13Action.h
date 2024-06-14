@@ -1,19 +1,18 @@
-#ifndef __G13_ACTION_H__
-#define __G13_ACTION_H__
+#pragma once
 
-class G13Action {
-private:
-	int pressed;
+class G13Action
+{
+	private:
+		int pressed{};
 
-protected:
-	virtual void key_down();
-	virtual void key_up();
+	protected:
+		virtual void key_down();
+		virtual void key_up();
 
-public:
-	G13Action();
-	virtual ~G13Action();
-	virtual int set(int state);
-	int isPressed();
+	public:
+		G13Action();
+		virtual ~G13Action();
+		virtual int set(int state);
+		[[nodiscard]] int isPressed() const;
 };
 
-#endif

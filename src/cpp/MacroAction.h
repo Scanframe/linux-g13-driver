@@ -1,8 +1,7 @@
-#ifndef __MACRO_ACTION_H__
-#define __MACRO_ACTION_H__
+#pragma once
 
-#include <unistd.h>
 #include <linux/uinput.h>
+#include <unistd.h>
 #include <vector>
 
 #include "G13Action.h"
@@ -12,89 +11,104 @@ using namespace std;
 
 class MacroAction : public G13Action
 {
-public:
-
-	class Event {
 	public:
-		Event() {};
-		virtual void execute() {};
-	};
+		class Event
+		{
+			public:
+				Event() = default;
+				virtual void execute() {};
+		};
 
-	class KeyDownEvent: Event {
-	private:
-		int keycode;
-	public:
-		KeyDownEvent(int code) {this->keycode = code;}
+		class KeyDownEvent : Event
+		{
+			private:
+				int keycode;
 
-		virtual void execute() {
-			//cout<<"  kde."<<keycode<<"\n";
-			send_event(EV_KEY, keycode, 1);
-			send_event(0, 0, 0);
-		}
-	};
+			public:
+				explicit KeyDownEvent(int code) { this->keycode = code; }
 
-	class KeyUpEvent: Event {
-	private:
-		int keycode;
-	public:
-		KeyUpEvent(int code) {this->keycode = code;}
+				void execute() override
+				{
+					//cout<<"  kde."<<keycode<<"\n";
+					send_event(EV_KEY, keycode, 1);
+					send_event(0, 0, 0);
+				}
+		};
 
-		virtual void execute() {
-			//cout<<"  kue."<<keycode<<"\n";
-			send_event(EV_KEY, keycode, 0);
-			send_event(0, 0, 0);
-		}
-	};
+		class KeyUpEvent : Event
+		{
+			private:
+				int keycode;
 
-	class DelayEvent: Event {
-	private:
-		int delayInMillisecs;
-	public:
-		DelayEvent(int delayInMillisecs) {this->delayInMillisecs = delayInMillisecs;}
-		virtual void execute() {
-			//cout<<"  de."<<delayInMillisecs<<"\n";
-			usleep(1000*delayInMillisecs);
-		}
-	};
+			public:
+				explicit KeyUpEvent(int code) { this->keycode = code; }
 
-	class MultiEventThread {
-	public:
-		int keepRepeating;
-		vector<MacroAction::Event *> local_events;
+				void execute() override
+				{
+					//cout<<"  kue."<<keycode<<"\n";
+					send_event(EV_KEY, keycode, 0);
+					send_event(0, 0, 0);
+				}
+		};
 
-		MultiEventThread() {keepRepeating = 0;}
+		class DelayEvent : Event
+		{
+			private:
+				int delayInMillisecs;
 
-		virtual void execute() {
-			do {
-				//cout << "MultiEventThread::execute() local_events.size() = " << local_events.size() << "\n";
-
-				for (unsigned int i = 0; i < local_events.size(); i++) {
-					local_events.at(i)->execute();
-					usleep(100);
+			public:
+				explicit DelayEvent(int delayInMillisecs)
+				{
+					this->delayInMillisecs = delayInMillisecs;
 				}
 
-			} while (keepRepeating);
-		}
-	};
+				void execute() override
+				{
+					//cout<<"  de."<<delayInMillisecs<<"\n";
+					usleep(1000 * delayInMillisecs);
+				}
+		};
 
-private:
-	vector<MacroAction::Event *>  events;
-    int                           repeats;
-    MultiEventThread             *thread;
-    pthread_attr_t                attr;
+		class MultiEventThread
+		{
+			public:
+				int keepRepeating;
+				vector<MacroAction::Event*> local_events;
 
-protected:
-    MacroAction::Event *tokenToEvent(char *token);
-	virtual void        key_down();
-	virtual void        key_up();
+				MultiEventThread() { keepRepeating = 0; }
 
-public:
-    MacroAction(char *tokens);
-    virtual ~MacroAction();
+				virtual void execute()
+				{
+					do
+					{
+						//std::cout << "MultiEventThread::execute() local_events.size() = " << local_events.size() << "\n";
+						for (auto & local_event : local_events) {
+							local_event->execute();
+							usleep(100);
+						}
 
-    int                          getRepeats();
-    void                         setRepeats(int repeats);
-    vector<MacroAction::Event *> getEvents();
+					}
+					while (keepRepeating);
+				}
+		};
+
+	private:
+		vector<MacroAction::Event*> events;
+		int _repeats{};
+		MultiEventThread* _thread{};
+		pthread_attr_t _attr{};
+
+	protected:
+		MacroAction::Event* tokenToEvent(char* token);
+		void key_down() override;
+		void key_up() override;
+
+	public:
+		explicit MacroAction(char* tokens);
+		~MacroAction() override;
+
+		int getRepeats() const;
+		void setRepeats(int repeats);
+		vector<MacroAction::Event*> getEvents();
 };
 
-#endif

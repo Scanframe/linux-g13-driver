@@ -1,23 +1,20 @@
-
-#ifndef __PASS_THROUGH_ACTION_H__
-#define __PASS_THROUGH_ACTION_H__
+#pragma once
 
 #include "G13Action.h"
 
-class PassThroughAction : public G13Action {
-private:
-	int keycode;
+class PassThroughAction : public G13Action
+{
+	private:
+		int _keycode;
 
-protected:
-	virtual void key_down();
-	virtual void key_up();
+	protected:
+		void key_down() override;
+		void key_up() override;
 
-public:
-	PassThroughAction(int code);
-	virtual ~PassThroughAction();
+	public:
+		explicit PassThroughAction(int code);
+		~PassThroughAction() override;
 
-	int getKeyCode();
-	void setKeyCode(int code);
+		[[nodiscard]] int getKeyCode() const;
+		void setKeyCode(int code);
 };
-
-#endif

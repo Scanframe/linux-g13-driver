@@ -1,31 +1,31 @@
 #include <linux/uinput.h>
 
-#include <iostream>
-
-#include "PassThroughAction.h"
 #include "Output.h"
+#include "PassThroughAction.h"
 
-using namespace std;
 
-PassThroughAction::PassThroughAction(int code) {
-	this->keycode = code;
+PassThroughAction::PassThroughAction(int code)
+{
+	this->_keycode = code;
 }
-PassThroughAction::~PassThroughAction() {
+PassThroughAction::~PassThroughAction() = default;
 
-}
-
-int PassThroughAction::getKeyCode() {
-	return keycode;
-}
-
-void PassThroughAction::setKeyCode(int code) {
-	this->keycode = code;
+[[maybe_unused]] int PassThroughAction::getKeyCode() const
+{
+	return _keycode;
 }
 
-void PassThroughAction::key_down() {
-	send_event(EV_KEY, keycode, 1);
+void PassThroughAction::setKeyCode(int code)
+{
+	this->_keycode = code;
 }
 
-void PassThroughAction::key_up() {
-	send_event(EV_KEY, keycode, 0);
+void PassThroughAction::key_down()
+{
+	send_event(EV_KEY, _keycode, 1);
+}
+
+void PassThroughAction::key_up()
+{
+	send_event(EV_KEY, _keycode, 0);
 }

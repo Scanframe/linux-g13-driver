@@ -1,8 +1,7 @@
-#ifndef __G13_H__
-#define __G13_H__
+#pragma once
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "Constants.h"
 #include "G13Action.h"
@@ -10,38 +9,37 @@
 
 using namespace std;
 
-class G13 {
-private:
-	G13Action            *actions[G13_NUM_KEYS];
+class G13
+{
+	private:
+		G13Action* actions[G13_NUM_KEYS]{};
 
-	libusb_device        *device;
-	libusb_device_handle *handle;
-	int                   uinput_file;
+		struct libusb_device* device{nullptr};
+		struct libusb_device_handle* handle{nullptr};
 
-	int                   loaded;
-	int                   keepGoing;
+		int uinput_file;
 
-	stick_mode_t          stick_mode;
-	int                   stick_keys[4];
+		int loaded;
+		int keepGoing;
 
-	int                   bindings;
+		stick_mode_t stick_mode;
+		int stick_keys[4];
 
-	Macro *loadMacro(int id);
+		int bindings;
 
-	int  read();
-	void parse_joystick(unsigned char *buf);
-	void parse_key(int key, unsigned char *byte);
-	void parse_keys(unsigned char *buf);
+		Macro* loadMacro(int id);
 
-public:
-	G13(libusb_device *device);
-	~G13();
+		int read();
+		void parse_joystick(const unsigned char* buf);
+		void parse_key(int key, const unsigned char* byte);
+		void parse_keys(const unsigned char* buf);
 
-	void start();
-	void stop();
-	void loadBindings();
-	void setColor(int r, int g, int b);
+	public:
+		explicit G13(libusb_device* device);
+		~G13();
+
+		void start();
+		void stop();
+		void loadBindings();
+		void setColor(int r, int g, int b);
 };
-
-
-#endif

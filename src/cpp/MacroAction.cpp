@@ -1,112 +1,113 @@
-#include <unistd.h>
-#include <linux/uinput.h>
-#include <vector>
-#include <pthread.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <linux/uinput.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <vector>
 
 #include "MacroAction.h"
 
-using namespace std;
-
-void *execute_macro(void *args) {
-	MacroAction::MultiEventThread *t = (MacroAction::MultiEventThread *)args;
-
+void* execute_macro(void* args)
+{
+	auto* t = (MacroAction::MultiEventThread*) args;
 	t->execute();
-
-	return NULL;
+	return nullptr;
 }
 
-
-MacroAction::Event *MacroAction::tokenToEvent(char *token) {
-	if (token == NULL) {
-		return NULL;
+MacroAction::Event* MacroAction::tokenToEvent(char* token)
+{
+	if (token == nullptr)
+	{
+		return nullptr;
 	}
 
-	if (strncmp(token, "kd.", 3) == 0) {
+	if (strncmp(token, "kd.", 3) == 0)
+	{
 		int code = atoi(&(token[3]));
-		return (MacroAction::Event *)new KeyDownEvent(code);
+		return (MacroAction::Event*) new KeyDownEvent(code);
 	}
-	else if (strncmp(token, "ku.", 3) == 0) {
+	else if (strncmp(token, "ku.", 3) == 0)
+	{
 		int code = atoi(&(token[3]));
-		return (MacroAction::Event *)new KeyUpEvent(code);
+		return (MacroAction::Event*) new KeyUpEvent(code);
 	}
-	else if (strncmp(token, "d.", 2) == 0) {
+	else if (strncmp(token, "d.", 2) == 0)
+	{
 		int delay = atoi(&(token[2]));
-		return (MacroAction::Event *)new DelayEvent(delay);
+		return (MacroAction::Event*) new DelayEvent(delay);
 	}
-	else {
+	else
+	{
 		cout << "MacroAction::tokenToEvent() unknown token: " << token << "\n";
 	}
-
-	return NULL;
+	return nullptr;
 }
 
-MacroAction::MacroAction(char *tokens) {
-
-	//cout << "MacroAction::MacroAction() tokens=" << tokens << "\n";
-
-	pthread_attr_init(&attr);
-
-	repeats = 0;
-
-	thread = NULL;
-
-	if (tokens == NULL) {
+MacroAction::MacroAction(char* tokens)
+{
+	//std::cout << "MacroAction::MacroAction() tokens=" << tokens << "\n";
+	pthread_attr_init(&_attr);
+	_repeats = 0;
+	_thread = nullptr;
+	if (tokens == nullptr)
+	{
 		return;
 	}
-
 	// kd.keycode,ku.keycode,d.time
-	char *token = strtok(tokens, ",");
-	while (token != NULL) {
-		MacroAction::Event *event = tokenToEvent(token);
-		if (event != NULL) {
+	char* token = strtok(tokens, ",");
+	while (token != nullptr) {
+		MacroAction::Event* event = tokenToEvent(token);
+		if (event != nullptr) {
 			events.push_back(event);
 		}
-		token = strtok(NULL, ",");
+		token = strtok(nullptr, ",");
 	}
 }
 
-MacroAction::~MacroAction() {
-}
+MacroAction::~MacroAction() = default;
 
-void MacroAction::key_down() {
+void MacroAction::key_down()
+{
 
-	if (thread != NULL) {
+	if (_thread != nullptr)
+	{
 		cout << "MacroAction::key_down(): current thread in action\n";
 		return;
 	}
 
 	//cout << "MacroAction::key_down()\n";
 
-	thread = new MultiEventThread();
-	thread->keepRepeating = repeats;
-	thread->local_events = events;
+	_thread = new MultiEventThread();
+	_thread->keepRepeating = _repeats;
+	_thread->local_events = events;
 
 	pthread_t pthread;
-	pthread_create(&pthread, &attr, execute_macro, thread );
+	pthread_create(&pthread, &_attr, execute_macro, _thread);
 	//cout << "MacroAction::key_down() thread created\n";
 }
 
-void MacroAction::key_up() {
+void MacroAction::key_up()
+{
 
-	if (thread != NULL) {
-		thread->keepRepeating = false;
+	if (_thread != nullptr) {
+		_thread->keepRepeating = false;
 	}
 
-	thread = NULL;
+	_thread = nullptr;
 }
 
-int MacroAction::getRepeats() {
-	return repeats;
+int MacroAction::getRepeats() const
+{
+	return _repeats;
 }
 
-void MacroAction::setRepeats(int repeats) {
-	this->repeats = repeats;
+void MacroAction::setRepeats(int repeats)
+{
+	_repeats = repeats;
 }
 
-vector<MacroAction::Event *> MacroAction::getEvents() {
+vector<MacroAction::Event*> MacroAction::getEvents()
+{
 	return events;
 }
-

@@ -1,86 +1,80 @@
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <string.h>
-#include <signal.h>
-#include <stdlib.h>
+#include <linux/uinput.h>
 #include <unistd.h>
 
-#include <iomanip>
-#include <linux/uinput.h>
-#include <fcntl.h>
-
-#include "Output.h"
 #include "Constants.h"
-
-using namespace std;
-
+#include "Output.h"
 
 int file = -1;
-pthread_mutex_t plock;
+pthread_mutex_t p_lock{};
 
-void send_event(int type, int code, int val) {
+void send_event(int type, int code, int val)
+{
 
 	/*
-	if (file == -1) {
-		pthread_mutex_init(&plock, NULL);
+	if (file == -1)
+	{
+		pthread_mutex_init(&lock_ptr, nullptr);
 		file = create_uinput();
 	}
 	*/
 
-	if (file == -2) {
+	if (file == -2)
+	{
 		return;
 	}
 
-	pthread_mutex_lock(&plock);
+	pthread_mutex_lock(&p_lock);
 
-	struct input_event event;
+	input_event event{};
 
 	memset(&event, 0, sizeof(event));
-	gettimeofday(&event.time, null);
+	gettimeofday(&event.time, nullptr);
 	event.type = type;
 	event.code = code;
 	event.value = val;
 
 	write(file, &event, sizeof(event));
 
-	//cout << "write(type=" << type << ", code=" <<  code << ", val=" << val << ")\n";
+	//std::cout << "write(type=" << type << ", code=" <<  code << ", val=" << val << ")\n";
 
-	pthread_mutex_unlock(&plock);
-
+	pthread_mutex_unlock(&p_lock);
 }
 
-void flush() {
-
-	pthread_mutex_lock(&plock);
+void flush()
+{
+	pthread_mutex_lock(&p_lock);
 	fsync(file);
-	pthread_mutex_unlock(&plock);
-
+	pthread_mutex_unlock(&p_lock);
 }
 
-int create_uinput() {
-	//cout << "create uinput\n";
+int create_uinput()
+{
+	//std::cout << "create uinput\n";
 
-	struct uinput_user_dev uinp;
+	uinput_user_dev uinp{};
 	const char* dev_uinput_fname =
-			access("/dev/input/uinput", F_OK) == 0 ? "/dev/input/uinput" :
-			access("/dev/uinput", F_OK) == 0 ? "/dev/uinput" : 0;
+		access("/dev/input/uinput", F_OK) == 0 ? "/dev/input/uinput" : access("/dev/uinput", F_OK) == 0 ? "/dev/uinput"
+																																																		: nullptr;
 
 	if (!dev_uinput_fname) {
-		cerr << "Could not find an uinput device" << endl;
+		std::cerr << "Could not find an uinput device" << std::endl;
 		return -2;
 	}
 
-	if (access(dev_uinput_fname, W_OK) != 0) {
-		cerr << dev_uinput_fname << " doesn't grant write permissions" << endl;
+	if (access(dev_uinput_fname, W_OK) != 0)
+	{
+		std::cerr << dev_uinput_fname << " doesn't grant write permissions" << std::endl;
 		return -2;
 	}
 
-	int ufile = open(dev_uinput_fname, O_WRONLY | O_NDELAY);
-	if (ufile <= 0) {
-		cerr << "Could not open uinput" << endl;
+	auto ufile = open(dev_uinput_fname, O_WRONLY | O_NDELAY);
+	if (ufile <= 0)
+	{
+		std::cerr << "Could not open uinput" << std::endl;
 		return -2;
 	}
 
@@ -112,15 +106,17 @@ int create_uinput() {
 		ioctl(ufile, UI_SET_KEYBIT, i);
 	ioctl(ufile, UI_SET_KEYBIT, BTN_THUMB);
 
-	int retcode = write(ufile, &uinp, sizeof(uinp));
-	if (retcode < 0) {
-		cerr << "Could not write to uinput device (" << retcode << ")" << endl;
+	auto written = write(ufile, &uinp, sizeof(uinp));
+	if (written < 0)
+	{
+		std::cerr << "Could not write to uinput device (" << written << ")" << std::endl;
 		return -2;
 	}
 
-	retcode = ioctl(ufile, UI_DEV_CREATE);
-	if (retcode) {
-		cerr << "Error creating uinput device for G13" << endl;
+	auto ret_code = ioctl(ufile, UI_DEV_CREATE);
+	if (ret_code)
+	{
+		std::cerr << "Error creating uinput device for G13" << std::endl;
 		return -2;
 	}
 
