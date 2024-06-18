@@ -13,13 +13,22 @@ CC       = g++
 FLAGS    = -L /lib64 -l pthread
 LIBS     = -lusb-1.0
 
+# Default (=first) target to clean and build the executable.
+default: clean target
+	echo "Created file $(EXE_NAME)"
+
+# Target to build the actual executable target.
+target: $(EXE_NAME)
+
+# Target to remove all generated files.
 clean:
-	rm $(OBJS) $(EXE_NAME)
+	rm -f $(OBJS) $(EXE_NAME)
 
-all: $(EXE_NAME)
-
+# Target rule	to compile Compile C++ files to object files.
 .cpp.o:
 	$(CC) $(FLAGS) -c $< -o $@
 
+# Executable rule to build executable from the compiled objects.
 $(EXE_NAME): $(OBJS)
 	$(CC) $(OBJS) -o $(EXE_NAME) $(FLAGS) $(LIBS)
+
